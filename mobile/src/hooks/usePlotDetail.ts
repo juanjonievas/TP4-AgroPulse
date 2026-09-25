@@ -45,17 +45,17 @@ export function usePlotDetail(plotId: string) {
       let historyData: Reading[] = [];
 
       if (stationIds.length > 0) {
-        const cutoff = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
-
+        // Obtenemos los últimos 100 puntos para armar el gráfico y sacar el más reciente
         const { data: readingsData, error: readingsError } = await supabase
           .from('readings')
           .select('id, station_id, moisture_pct, temp_c, rain_mm, measured_at')
           .in('station_id', stationIds)
-          .gte('measured_at', cutoff)
-          .order('measured_at', { ascending: true });
+          .order('measured_at', { ascending: false })
+          .limit(100);
 
         if (!readingsError && readingsData && readingsData.length > 0) {
-          historyData = readingsData as Reading[];
+          // Revertimos para que queden en orden cronológico en el gráfico
+          historyData = (readingsData as Reading[]).reverse();
           latestReading = historyData[historyData.length - 1];
         }
       }
@@ -109,12 +109,12 @@ export function usePlotDetail(plotId: string) {
     // 1. Carga inicial
     loadDetail(true);
 
-    // 2. Polling de respaldo cada 3 segundos sin recargar pantalla
+    // 2. Polling de respaldo acelerado a 1.5 segundos
     const pollInterval = setInterval(() => {
       if (mounted) {
         loadDetail(false);
       }
-    }, 3000);
+    }, 1500);
 
     // 3. Realtime Subscription (canal único)
     const channelName = `plot_detail_${plotId}_${Math.random().toString(36).substring(2, 9)}`;

@@ -63,15 +63,15 @@ export function useDashboardData() {
       const fallbackGeoms: Record<string, any> = {
         'Costa 1': {
           type: 'Polygon',
-          coordinates: [[[-58.000, -31.000], [-58.010, -31.000], [-58.010, -31.010], [-58.000, -31.010], [-58.000, -31.000]]]
+          coordinates: [[[-58.060, -30.980], [-58.040, -30.980], [-58.040, -30.990], [-58.060, -30.990], [-58.060, -30.980]]]
         },
         'Costa 2': {
           type: 'Polygon',
-          coordinates: [[[-58.020, -31.000], [-58.030, -31.000], [-58.030, -31.010], [-58.020, -31.010], [-58.020, -31.000]]]
+          coordinates: [[[-58.045, -31.000], [-58.025, -31.000], [-58.025, -31.010], [-58.045, -31.010], [-58.045, -31.000]]]
         },
         'Monte A': {
           type: 'Polygon',
-          coordinates: [[[-58.040, -31.000], [-58.050, -31.000], [-58.050, -31.010], [-58.040, -31.010], [-58.040, -31.000]]]
+          coordinates: [[[-58.030, -31.020], [-58.010, -31.020], [-58.010, -31.030], [-58.030, -31.030], [-58.030, -31.020]]]
         }
       };
 
@@ -105,12 +105,12 @@ export function useDashboardData() {
     // 1. Carga inicial
     fetchPlotsData(true);
 
-    // 2. Polling de respaldo cada 5 segundos para tolerar interrupciones de red o transporte
+    // 2. Polling de respaldo (acelerado a 1.5 seg para mayor respuesta)
     const pollTimer = setInterval(() => {
       if (mounted) {
         fetchPlotsData(false);
       }
-    }, 5000);
+    }, 1500);
 
     // 3. Realtime Subscription (canal único por instancia)
     const channelName = `dashboard_sync_${Math.random().toString(36).substring(2, 9)}`;

@@ -5,10 +5,15 @@ import { Valve } from '../types';
 
 interface Props {
   valve: Valve;
+  pendingCommand?: any;
 }
 
-export default function ValveStatus({ valve }: Props) {
-  const isOpen = valve.status === 'open';
+export default function ValveStatus({ valve, pendingCommand }: Props) {
+  // Si hay un comando de apertura pendiente, forzamos a que se muestre como CERRADA
+  // hasta que el comando pase a APPLIED, tal como solicitó el usuario.
+  const isPendingOpen = pendingCommand?.status === 'pending' && (pendingCommand.action === 'open' || pendingCommand.action === 'open_n_min');
+  
+  const isOpen = valve.status === 'open' && !isPendingOpen;
 
   return (
     <View

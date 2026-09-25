@@ -114,15 +114,6 @@ export default function IrrigationControls({
     }
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color="#059669" />
-        <Text style={styles.loadingText}>Procesando comando de riego...</Text>
-      </View>
-    );
-  }
-
   // Retiramos la tarjeta "pending" de aquí; ahora se mostrará en el historial en [id].tsx
 
   return (
@@ -194,10 +185,11 @@ export default function IrrigationControls({
         </View>
 
         <TouchableOpacity
-          style={[styles.actionBtn, styles.btnProgram, (loading || !duration || !!pendingCommand) && styles.btnDisabled]}
+          style={[styles.actionBtn, styles.btnProgram, (loading || !!pendingCommand) && styles.btnDisabled]}
           onPress={() => handleCommand('open_n_min')}
-          disabled={loading || !duration || !!pendingCommand}
+          disabled={loading || !!pendingCommand}
           activeOpacity={0.8}
+
         >
           <MaterialIcons name="play-arrow" size={18} color="#ffffff" />
           <Text style={styles.actionBtnText}>Regar</Text>

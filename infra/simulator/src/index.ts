@@ -24,19 +24,21 @@ async function run() {
 
   console.log('[Simulador] Conectado a Kafka. Iniciando generación de telemetría dinámica...');
 
-  // Telemetría (cada 5s)
+  // Telemetría (cada 3s para un avance fluido pero moderado)
   setInterval(async () => {
     const ts = new Date().toISOString();
     
     for (const station of STATIONS) {
       // Dinámica de humedad coherente con el riego:
-      // Si la válvula está abierta, la humedad crece progresivamente
+      // Si la válvula está abierta, sube moderadamente
       if (station.valveOpen) {
-        station.baseMoisture = Math.min(38, station.baseMoisture + 1.5);
+        station.baseMoisture = Math.min(100, station.baseMoisture + 2);
       } else {
-        // Si está cerrada, desciende lentamente si es Costa 2
+        // Si está cerrada, desciende lentamente
         if (station.name === 'Costa 2' && station.baseMoisture > 18) {
-          station.baseMoisture = Math.max(18, station.baseMoisture - 0.2);
+          station.baseMoisture = Math.max(18, station.baseMoisture - 0.5);
+        } else if (station.name === 'Costa 1' && station.baseMoisture > 35) {
+          station.baseMoisture = Math.max(35, station.baseMoisture - 0.5);
         }
       }
 
@@ -58,7 +60,7 @@ async function run() {
 
       console.log(`[Simulador] Telemetría -> ${station.name} | Hum: ${moisture}% | Válvula: ${station.valveOpen ? 'ABIERTA' : 'CERRADA'}`);
     }
-  }, 5000);
+  }, 3000);
 
   // Escuchar comandos (txn.commands)
   await consumer.subscribe({ topic: 'txn.commands', fromBeginning: false });
@@ -76,20 +78,9 @@ async function run() {
       
       console.log(`[Simulador] Procesando comando de riego para válvula ${cmd.valve_id} | Acción: ${cmd.action}`);
       
-      // Simular tiempo de acción física de 5 segundos exactos según requerimiento
-      const delay = 5000;
+      // Simular tiempo de acción física (reducido a 1 segundo para agilidad)
+      const delay = 1000;
       await new Promise(res => setTimeout(res, delay));
-
-      const isFailure = Math.random() < 0.05;
-
-      if (isFailure) {
-        console.log(`[Simulador] ⚠️ Fallo simulado para comando ${cmd.command_id}`);
-        await producer.send({
-          topic: 'txn.dlq',
-          messages: [{ value: JSON.stringify({ command_id: cmd.command_id, valve_id: cmd.valve_id, reason: 'valve_timeout', ts: new Date().toISOString() }) }]
-        });
-        return;
-      }
 
       const st = STATIONS.find(s => s.valveId === cmd.valve_id);
 

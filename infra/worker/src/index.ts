@@ -219,8 +219,8 @@ async function run() {
 
   console.log('[Worker] Conectado a Kafka.');
 
-  // Iniciar polling periódico cada 15 segundos
-  setInterval(pollPendingCommands, 15000);
+  // Iniciar polling periódico cada 2 segundos
+  setInterval(pollPendingCommands, 2000);
   pollPendingCommands();
 
   // Etapa 4: Polling de Stale cada 1 minuto
@@ -246,7 +246,7 @@ async function run() {
           readingBuffer.set(readingId, {
             station_id: data.station_id,
             ts: data.ts,
-            timeout: setTimeout(() => flushReading(readingId), 10000) // 10 segundos de tolerancia
+            timeout: setTimeout(() => flushReading(readingId), 1000) // 1 segundo de tolerancia para ser más ágil
           });
         }
 

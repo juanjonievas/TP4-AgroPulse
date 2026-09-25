@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity, ActivityIndicator } from 'react-native';
-import MapView, { Polygon } from 'react-native-maps';
+import { View, Text, StyleSheet, Platform, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import MapView, { Polygon, UrlTile } from 'react-native-maps';
+import Svg, { Polygon as SvgPolygon, Rect, Text as SvgText, Defs, Pattern, Path, G } from 'react-native-svg';
 import * as Location from 'expo-location';
 import { isPointInPolygon } from 'geolib';
 import { useRouter } from 'expo-router';
@@ -162,63 +163,56 @@ export default function MapScreen() {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={StyleSheet.absoluteFill}
-        initialRegion={{
-          latitude: -31.005,
-          longitude: -58.025,
-          latitudeDelta: 0.04,
-          longitudeDelta: 0.07,
-        }}
-        showsUserLocation={!locationError}
-        showsMyLocationButton={true}
-        mapType="standard"
-      >
-        {plots.map((plot) => {
-          if (!plot.geom || !plot.geom.coordinates || plot.geom.coordinates.length === 0) return null;
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#e2e8f0' }]}>
+        <Image 
+          source={require('../../../assets/images/map-background.jpg')} 
+          style={{ width: '100%', height: '100%', position: 'absolute' }} 
+          resizeMode="cover" 
+        />
+        <Svg width="100%" height="100%" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice">
+          {plots.map((plot) => {
+            if (!plot.geom || !plot.geom.coordinates || plot.geom.coordinates.length === 0) return null;
 
-          const coords = plot.geom.coordinates[0].map((c: number[]) => ({
-            latitude: c[1],
-            longitude: c[0],
-          }));
+            // Ajuste de bounding box para alinear mejor con la imagen satelital:
+            const minLng = -58.07;
+            const maxLng = -57.98;
+            const minLat = -31.03;
+            const maxLat = -30.97;
 
-          return (
-            <Polygon
-              key={plot.id}
-              coordinates={coords}
-              fillColor={getFillColor(plot)}
-              strokeColor={getStrokeColor(plot)}
-              strokeWidth={3}
-              zIndex={10}
-              tappable
-              onPress={() => router.push({ pathname: '/plot/[id]', params: { id: plot.id } } as never)}
-            />
-          );
-        })}
-      </MapView>
+            const mapX = (lng: number) => ((lng - minLng) / (maxLng - minLng)) * 400;
+            const mapY = (lat: number) => 800 - ((lat - minLat) / (maxLat - minLat)) * 800;
 
-      <View style={styles.topOverlay} pointerEvents="box-none">
-        {locationError ? (
-          <View style={[styles.gpsBanner, styles.bannerError]}>
-            <MaterialIcons name="location-off" size={16} color="#ffffff" />
-            <Text style={styles.bannerText}>{locationError}</Text>
-          </View>
-        ) : insidePlot ? (
-          <View style={[styles.gpsBanner, styles.bannerInside]}>
-            <MaterialIcons name="my-location" size={16} color="#ffffff" />
-            <Text style={styles.bannerText}>📍 Dentro de {insidePlot}</Text>
-          </View>
-        ) : currentLocation ? (
-          <View style={[styles.gpsBanner, styles.bannerOutside]}>
-            <MaterialIcons name="near-me" size={16} color="#ffffff" />
-            <Text style={styles.bannerText}>📍 Fuera de los lotes</Text>
-          </View>
-        ) : (
-          <View style={[styles.gpsBanner, styles.bannerLoading]}>
-            <ActivityIndicator size="small" color="#ffffff" />
-            <Text style={styles.bannerText}>Buscando GPS...</Text>
-          </View>
-        )}
+            const points = plot.geom.coordinates[0]
+              .map((c: number[]) => `${mapX(c[0])},${mapY(c[1])}`)
+              .join(' ');
+
+            const centerLng = plot.geom.coordinates[0].reduce((sum: number, c: number[]) => sum + c[0], 0) / plot.geom.coordinates[0].length;
+            const centerLat = plot.geom.coordinates[0].reduce((sum: number, c: number[]) => sum + c[1], 0) / plot.geom.coordinates[0].length;
+
+            return (
+              <G key={plot.id} onPress={() => router.push({ pathname: '/plot/[id]', params: { id: plot.id } } as never)}>
+                <SvgPolygon
+                  points={points}
+                  fill={getFillColor(plot)}
+                  fillOpacity="0.8"
+                  stroke={getStrokeColor(plot)}
+                  strokeWidth="3"
+                />
+                <SvgText
+                  x={mapX(centerLng)}
+                  y={mapY(centerLat)}
+                  fill="#ffffff"
+                  fontSize="16"
+                  fontWeight="bold"
+                  textAnchor="middle"
+                  alignmentBaseline="middle"
+                >
+                  {plot.name}
+                </SvgText>
+              </G>
+            );
+          })}
+        </Svg>
       </View>
 
       <View style={styles.bottomOverlay} pointerEvents="box-none">

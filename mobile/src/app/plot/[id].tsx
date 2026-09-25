@@ -257,7 +257,7 @@ export default function PlotDetailScreen() {
         <Text style={styles.sectionTitle}>Control y Operación de Riego</Text>
         {valve ? (
           <>
-            <ValveStatus valve={valve} />
+            <ValveStatus valve={valve} pendingCommand={pendingCommand} />
             <IrrigationControls
               valveId={valve.id}
               pendingCommand={pendingCommand}
@@ -293,6 +293,7 @@ export default function PlotDetailScreen() {
                 data.commandHistory.map((cmd) => {
                   const isPending = cmd.status === 'pending';
                   const isApplied = cmd.status === 'applied';
+                  const isFailed = cmd.status === 'failed';
                   const isCancelled = cmd.status === 'cancelled';
 
                   let actionName = 'Acción de riego';
@@ -317,6 +318,7 @@ export default function PlotDetailScreen() {
                           styles.historyBadge,
                           isApplied && styles.badgeApplied,
                           isPending && styles.badgePending,
+                          isFailed && styles.badgeFailed,
                           isCancelled && styles.badgeCancelled,
                         ]}
                       >
@@ -325,10 +327,11 @@ export default function PlotDetailScreen() {
                             styles.historyBadgeText,
                             isApplied && styles.textApplied,
                             isPending && styles.textPending,
+                            isFailed && styles.textFailed,
                             isCancelled && styles.textCancelled,
                           ]}
                         >
-                          {isApplied ? 'APPLIED' : isPending ? 'PENDING' : 'CANCELLED'}
+                          {isApplied ? 'APPLIED' : isPending ? 'PENDING' : isFailed ? 'FAILED (Falla HW)' : 'CANCELLED'}
                         </Text>
                       </View>
                     </View>
@@ -705,6 +708,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e2e8f0',
   },
+  badgeFailed: {
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+  },
   textApplied: {
     color: '#059669',
   },
@@ -713,6 +721,9 @@ const styles = StyleSheet.create({
   },
   textCancelled: {
     color: '#64748b',
+  },
+  textFailed: {
+    color: '#dc2626',
   },
   emptyHistoryText: {
     fontSize: 12,
