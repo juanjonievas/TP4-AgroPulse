@@ -4,9 +4,6 @@ AgroPulse es un prototipo demostrativo y formativo de agricultura de precisión 
 
 El sistema permite a productores, operadores y asesores visualizar lotes y estaciones en un mapa interactivo con semaforización de humedad en tiempo real, configurar umbrales agronómicos y emitir comandos de riego con acuse de recepción idempotente.
 
-> **Aviso Ético / Datos Ficticios (RNF-10):**
-> AgroPulse es un proyecto estrictamente académico. Todas las lecturas de humedad, temperatura, lluvia y coordenadas geográficas (zona Concordia, Entre Ríos) corresponden a datos simulados y no pertenecen a un establecimiento agropecuario real.
-
 ---
 
 ## 1. Arquitectura General del Sistema
